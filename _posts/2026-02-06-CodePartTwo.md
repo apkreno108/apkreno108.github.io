@@ -1,4 +1,12 @@
-# CodePartTwo ( linux / js2py_escape / web_config_database / sudo -l / config_file )
+---
+title: HackTheBox-CodePartTwo
+date: 2026-02-06 12:00:00 +0000
+categories: [HTB, CTF]
+tags: [HTB, CVE, js2py, Linux]
+layout: post
+---
+
+# HackTheBox-CodePartTwo[Easy]
 
 # Nmap scan
 
@@ -82,7 +90,7 @@ python3 -c 'import pty; pty.spawn("/bin/bash")'
 
 - After some search we found `users.db`  in instance folder .
 
-![image.png](CodePartTwo%20(%20linux%20js2py_escape%20web_config_databa/image.png)
+![image.png](/assets/img/CodePartTwo/image.png)
 
 - Enumerate tables .
 
@@ -107,7 +115,7 @@ sqlite3 users.db "SELECT * FROM user;"
 sweetangelbabylove
 ```
 
-![image.png](CodePartTwo%20(%20linux%20js2py_escape%20web_config_databa/image%201.png)
+![image1.png](/assets/img/CodePartTwo/image%201.png)
 
 - Now we can just use them to login using ssh or simply use `su` .
 
