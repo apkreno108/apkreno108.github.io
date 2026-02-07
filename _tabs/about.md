@@ -1,5 +1,6 @@
 ---
 layout: page
+icon: fas fa-info-circle
 title: About Me
 permalink: /about/
 description: "Penetration Tester specializing in web, mobile, and Active Directory security. HTB writeups, offensive security labs, and real-world attack techniques."
