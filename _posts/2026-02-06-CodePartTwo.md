@@ -1,17 +1,20 @@
 ---
 title: HackTheBox-CodePartTwo
+description: "Step-by-step Hack The Box CodePartTwo walkthrough. Learn how to exploit js2py RCE (CVE-2024-28397), gain user access, and escalate privileges via sudo abuse."
 date: 2026-02-06 12:00:00 +0000
-categories: [HTB, CTF]
-tags: [HTB, CVE, js2py, Linux, Machine]
+categories: [HTB, Machine]
+tags: [Linux, js2py, CVE, sudo_abuse, configuration_injection]
 layout: post
+permalink: /hackthebox/codeparttwo/
 ---
 
 ![image4.png](/assets/img/CodePartTwo/image%204.png)
 
 
-# CodePartTwo[Easy]
+# CodePartTwo
 
-## Enumeration
+## Enumeration – Service Discovery
+
 
 ### Nmap Scan
 
@@ -41,7 +44,7 @@ Service Info: OS: Linux
 
 ---
 
-## Web Enumeration
+## Web Enumeration – Application Mapping
 
 ### Directory Brute Force
 
@@ -68,7 +71,7 @@ dirsearch -u http://10.129.11.13:8000 -x 404
 
 ---
 
-## Initial Foothold
+## Initial Foothold – js2py Remote Code Execution
 
 ### Web Application Analysis
 
@@ -105,7 +108,7 @@ Reviewing the backend reveals that the application uses **js2py** to execute use
 
 ---
 
-## Exploitation
+## Exploitation CVE-2024-28397 
 
 ### Reverse Shell
 
