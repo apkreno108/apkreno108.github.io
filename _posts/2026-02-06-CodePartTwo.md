@@ -9,7 +9,7 @@ layout: post
 ![image4.png](/assets/img/CodePartTwo/image%204.png)
 
 
-# Hack The Box 
+# CodePartTwo[Easy]
 
 ## Enumeration
 
