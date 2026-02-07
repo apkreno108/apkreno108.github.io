@@ -2,9 +2,11 @@
 title: HackTheBox-CodePartTwo
 date: 2026-02-06 12:00:00 +0000
 categories: [HTB, CTF]
-tags: [HTB, CVE, js2py, Linux]
+tags: [HTB, CVE, js2py, Linux, Machine]
 layout: post
 ---
+
+![image4.png](/assets/img/CodePartTwo/image%204.png)
 
 # HackTheBox-CodePartTwo[Easy]
 
@@ -62,12 +64,15 @@ Target: http://10.129.11.13:8000/
 
 # Web and getting initial shell
 
-- After opening web page notice code input area which use `/run_code` endpoint .
+- After opening web page and registering notice code input area which use `/run_code` endpoint .
+
+![image3.png](/assets/img/CodePartTwo/image%203.png)
 
 ```bash
 └─$ curl -X POST http://10.129.11.13:8000/run_code -H "Content-Type: application/json" -d '{"code": "var x = 5 + 5; x"}'
 {"result":10}
 ```
+- From home page download source code .
 
 - After searching we found it uses `js2py` at `http://10.129.11.13:8000/run_code` which is vulnerable to https://github.com/naclapor/CVE-2024-28397/.
 - Download then use exploit as described .
