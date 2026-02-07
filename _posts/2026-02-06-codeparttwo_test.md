@@ -6,7 +6,7 @@ tags: [HTB, CVE, js2py, Linux, Machine]
 layout: post
 ---
 
-# Hack The Box – CodePartTwo (Easy)
+# Hack The Box 
 
 ## Enumeration
 
