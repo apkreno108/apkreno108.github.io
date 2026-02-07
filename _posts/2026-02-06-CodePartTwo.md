@@ -8,13 +8,6 @@ layout: post
 
 ![image4.png](/assets/img/CodePartTwo/image%204.png)
 
----
-title: HackTheBox
-date: 2026-02-06 12:00:00 +0000
-categories: [HTB, CTF]
-tags: [HTB, CVE, js2py, Linux, Machine]
-layout: post
----
 
 # Hack The Box 
 
