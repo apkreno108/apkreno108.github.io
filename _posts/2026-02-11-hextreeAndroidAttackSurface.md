@@ -1,6 +1,6 @@
 ---
 title: Hextree Android Attack Surface Write up
-date: 2026-02-10
+date: 2026-02-11
 categories: [Android, Security]
 tags: [Android, HexTree]
 layout: post
@@ -8,7 +8,6 @@ permalink: /hextree/AndroidAttackSurface/
 ---
 
 ![hextree](/assets/img/AndroidAttackSurface/image%20.png)
-# Hextree Android Attack Surface
 
 ## Tips
 

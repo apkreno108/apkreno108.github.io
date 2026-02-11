@@ -11,8 +11,6 @@ permalink: /hackthebox/codeparttwo/
 ![image4.png](/assets/img/CodePartTwo/image%204.png)
 
 
-# CodePartTwo
-
 ## Enumeration – Service Discovery
 
 
