@@ -431,8 +431,8 @@ else if (this.nextIntent.getStringExtra("reason").equals("next")) {
  public void onClick(View v) {
                 Intent nextIntent = new Intent();
                 nextIntent.putExtra("reason", "next");
-								nextIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-								nextIntent.setClassName("io.hextree.attacksurface","io.hextree.attacksurface.activities.Flag6Activity");
+                nextIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                nextIntent.setClassName("io.hextree.attacksurface","io.hextree.attacksurface.activities.Flag6Activity");
 
                 Intent innerIntent = new Intent();
                 innerIntent.putExtra("return", 42);
