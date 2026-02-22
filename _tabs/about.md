@@ -9,12 +9,14 @@ description: "Penetration Tester specializing in web, mobile, and Active Directo
 ## 👋 Hi, I’m Abdelrhman Khaled
 
 <div class="d-flex justify-content-center my-4">
-  <iframe 
-    src="https://tryhackme.com/api/v2/badges/public-profile?userPublicId=652323" 
-    class="img-nothumb"
-    style="border: none; width: 350px; height: 100px; filter: none !important;" 
-    scrolling="no">
-  </iframe>
+  <div style="background: white; padding: 10px; border-radius: 12px; border: 1px solid #ddd; display: inline-block;">
+    <iframe 
+      src="https://tryhackme.com/api/v2/badges/public-profile?userPublicId=652323" 
+      style="border: none; width:350px; height: 100px; filter: none !important; -webkit-filter: none !important;" 
+      class="img-nothumb"
+      scrolling="no">
+    </iframe>
+  </div>
 </div>
 
 I’m a **Penetration Tester and Offensive Security enthusiast** with hands-on experience in **Web, API, Mobile (Android/iOS), and Network/Active Directory security**.  
